@@ -1,5 +1,13 @@
 import { GraphQLServer } from 'graphql-yoga'
 
+//
+// Part I
+//
+// 1. Set up a "Comment" type with id and text fields. Both non-nullable.
+// 2. Set up a "comments" array with 4 comments
+// 3. Set up a "comments" query with a resolver that returns all the comments
+// 4. Run an query to get all 4 comments with both id and text fields
+
 // Scalar types - String, Boolean, Int, Float, ID
 
 // Demo user data
@@ -37,31 +45,29 @@ const posts = [{
     published: false,
     author: '2'
 }]
-const relation = [{
-    id: '1',
-    name: 'Andrew',
-    email: 'andrew@example.com',
-    start: 2
+
+const comments = [{
+    id: '102',
+    text: 'This worked well for me. Thanks!'
 }, {
-    id: '2',
-    name: 'Sarah',
-    email: 'sarah@example.com',
-    start:1
+    id: '103',
+    text: 'Glad you enjoyed it.'
 }, {
-    id: '3',
-    name: 'Mike',
-    email: 'mike@example.com',
-    start: 2
+    id: '104',
+    text: 'This did no work.'
+}, {
+    id: '105',
+    text: 'Nevermind. I got it to work.'
 }]
+
 // Type definitions (schema)
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
-        posts(query: String): [Post!]! 
-        relation:[Union!]!
+        posts(query: String): [Post!]!
+        comments: [Comment!]!
         me: User!
         post: Post!
-        set: Union!
     }
 
     type User {
@@ -69,15 +75,7 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
-        posts:[Post!]!
-        uses:[Union!]!
-    }
-
-    type Union {
-        id: ID!
-        name: String!
-        email: String!
-        relation: [User!]!
+        posts: [Post!]!
     }
 
     type Post {
@@ -86,6 +84,11 @@ const typeDefs = `
         body: String!
         published: Boolean!
         author: User!
+    }
+
+    type Comment {
+        id: ID!
+        text: String!
     }
 `
 
@@ -112,10 +115,13 @@ const resolvers = {
                 return isTitleMatch || isBodyMatch
             })
         },
+        comments(parent, args, ctx, info) {
+            return comments
+        },
         me() {
             return {
-                id: '983098',
-                name: 'shree',
+                id: '123098',
+                name: 'Mike',
                 email: 'mike@example.com'
             }
         },
@@ -124,19 +130,9 @@ const resolvers = {
                 id: '092',
                 title: 'GraphQL 101',
                 body: '',
-                published: false,
-                author:1
+                published: false
             }
-        },
-
-        set() {
-            return {
-                id: '1',
-                name: 'shreemathi',
-                email: 'shree@example.com',
-              
-            }
-        },
+        }
     },
     Post: {
         author(parent, args, ctx, info) {
@@ -151,17 +147,7 @@ const resolvers = {
                 return post.author === parent.id
             })
         }
-    },
-   
-        relation(parent, args, ctx, info) {
-            return relation.filter((post) => {
-                return post.start === parent.id
-            })
-        
     }
-
-    
-
 }
 
 const server = new GraphQLServer({

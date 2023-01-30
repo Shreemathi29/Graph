@@ -37,31 +37,33 @@ const posts = [{
     published: false,
     author: '2'
 }]
-const relation = [{
-    id: '1',
-    name: 'Andrew',
-    email: 'andrew@example.com',
-    start: 2
+
+const comments = [{
+    id: '102',
+    text: 'This worked well for me. Thanks!',
+    author: '3'
 }, {
-    id: '2',
-    name: 'Sarah',
-    email: 'sarah@example.com',
-    start:1
+    id: '103',
+    text: 'Glad you enjoyed it.',
+    author: '1'
 }, {
-    id: '3',
-    name: 'Mike',
-    email: 'mike@example.com',
-    start: 2
+    id: '104',
+    text: 'This did no work.',
+    author: '3'
+}, {
+    id: '105',
+    text: 'Nevermind. I got it to work.',
+    author: '1'
 }]
+
 // Type definitions (schema)
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
-        posts(query: String): [Post!]! 
-        relation:[Union!]!
+        posts(query: String): [Post!]!
+        comments: [Comment!]!
         me: User!
         post: Post!
-        set: Union!
     }
 
     type User {
@@ -69,15 +71,8 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
-        posts:[Post!]!
-        uses:[Union!]!
-    }
-
-    type Union {
-        id: ID!
-        name: String!
-        email: String!
-        relation: [User!]!
+        posts: [Post!]!
+        comments: [Comment!]!
     }
 
     type Post {
@@ -85,6 +80,12 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
+    }
+
+    type Comment {
+        id: ID!
+        text: String!
         author: User!
     }
 `
@@ -112,10 +113,13 @@ const resolvers = {
                 return isTitleMatch || isBodyMatch
             })
         },
+        comments(parent, args, ctx, info) {
+            return comments
+        },
         me() {
             return {
-                id: '983098',
-                name: 'shree',
+                id: '123098',
+                name: 'Mike',
                 email: 'mike@example.com'
             }
         },
@@ -124,21 +128,18 @@ const resolvers = {
                 id: '092',
                 title: 'GraphQL 101',
                 body: '',
-                published: false,
-                author:1
+                published: false
             }
-        },
-
-        set() {
-            return {
-                id: '1',
-                name: 'shreemathi',
-                email: 'shree@example.com',
-              
-            }
-        },
+        }
     },
     Post: {
+        author(parent, args, ctx, info) {
+            return users.find((user) => {
+                return user.id === parent.author
+            })
+        }
+    },
+    Comment: {
         author(parent, args, ctx, info) {
             return users.find((user) => {
                 return user.id === parent.author
@@ -150,18 +151,13 @@ const resolvers = {
             return posts.filter((post) => {
                 return post.author === parent.id
             })
-        }
-    },
-   
-        relation(parent, args, ctx, info) {
-            return relation.filter((post) => {
-                return post.start === parent.id
+        },
+        comments(parent, args, ctx, info) {
+            return comments.filter((comment) => {
+                return comment.author === parent.id
             })
-        
+        }
     }
-
-    
-
 }
 
 const server = new GraphQLServer({
