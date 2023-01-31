@@ -180,7 +180,7 @@ const resolvers = {
 }
 
 const server = new GraphQLServer({
-    typeDefs: './src/schema.graphql',
+    typeDefs: './src1/schema.graphql',
     resolvers,
     context: {
         db
